@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AutoClic.co — Vende tu vehículo</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f5f5}
+.nav{background:#1A1A2E;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px}
+.logo{color:#fff;font-size:20px;font-weight:600}.logo span{color:#E53E2B}
+.nav-btn{background:#E53E2B;color:#fff;border:none;padding:8px 18px;border-radius:6px;font-size:13px;cursor:pointer}
+.hero{background:#1A1A2E;padding:40px 24px 48px;text-align:center;color:#fff}
+.hero h1{font-size:26px;font-weight:600;margin-bottom:8px}
+.hero p{font-size:14px;color:rgba(255,255,255,0.6);margin-bottom:24px}
+.btn-pub{background:#E53E2B;color:#fff;border:none;padding:12px 28px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;padding:24px}
+.card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+.card:hover{transform:translateY(-2px);transition:0.2s}
+.card-img{width:100%;height:180px;object-fit:cover;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:52px}
+.card-img img{width:100%;height:180px;object-fit:cover}
+.card-body{padding:16px}
+.badge{display:inline-block;font-size:11px;padding:3px 8px;border-radius:4px;font-weight:600;margin-bottom:8px}
+.bc{background:#dbeafe;color:#1e40af}.bm{background:#dcfce7;color:#166534}.bt{background:#fef3c7;color:#92400e}
+.card-title{font-size:15px;font-weight:600;margin-bottom:4px}
+.card-sub{font-size:13px;color:#666;margin-bottom:10px}
+.card-price{font-size:19px;font-weight:700;color:#E53E2B}
+.card-footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid #f0f0f0}
+.card-city{font-size:12px;color:#999}
+.btn-tel{background:#1A1A2E;color:#fff;border:none;padding:8px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
+.modal-head{padding:20px 24px 0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;z-index:1;border-bottom:1px solid #f0f0f0;padding-bottom:12px}
+.modal-head h2{font-size:17px;font-weight:600}
+.close-btn{background:none;border:none;font-size:22px;cursor:pointer;color:#999}
+.modal-body{padding:20px 24px 24px}
+.pay-box{border:2px solid #E53E2B;border-radius:12px;padding:20px;text-align:center;margin-bottom:16px}
+.pay-amount{font-size:30px;font-weight:700;color:#E53E2B;margin:8px 0 4px}
+.btn-pay{background:#009EE3;color:#fff;border:none;padding:14px;border-radius:8px;font-size:15px;cursor:pointer;font-weight:700;width:100%;margin-top:8px}
+.btn-pay:hover{background:#0081c2}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:13px;font-weight:600;color:#555;margin-bottom:5px}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px}
+.form-group textarea{min-height:80px;resize:vertical}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn-submit{background:#E53E2B;color:#fff;border:none;padding:14px;border-radius:8px;font-size:15px;cursor:pointer;font-weight:700;width:100%;margin-top:8px}
+.upload-zone{border:2px dashed #ddd;border-radius:10px;padding:30px;text-align:center;cursor:pointer;margin-bottom:12px;transition:0.2s}
+.upload-zone:hover{border-color:#E53E2B;background:#fff5f5}
+.upload-zone input{display:none}
+.preview-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.preview-grid img{width:100%;height:70px;object-fit:cover;border-radius:6px;border:1px solid #eee}
+.foto-count{font-size:12px;color:#999;text-align:center;margin-bottom:8px}
+.phone-reveal{background:#f0fdf4;border:2px solid #16a34a;border-radius:10px;padding:20px;text-align:center;margin-bottom:16px}
+.phone-number{font-size:30px;font-weight:700;color:#15803d;letter-spacing:2px;margin:8px 0}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="logo">Auto<span>Clic</span>.co</div>
+  <button class="nav-btn" onclick="openPublish()">+ Publicar vehículo</button>
+</nav>
+
+<div class="hero">
+  <h1>Vende tu vehículo más rápido</h1>
+  <p>Compradores serios pagan $10.000 para ver tu número. Sin curiosos.</p>
+  <button class="btn-pub" onclick="openPublish()">Publicar mi vehículo gratis</button>
+</div>
+
+<div class="grid" id="car-grid"></div>
+
+<!-- Modal ver teléfono -->
+<div class="overlay" id="modal-tel" style="display:none">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="tel-title">Ver contacto</h2>
+      <button class="close-btn" onclick="closeModal('modal-tel')">×</button>
+    </div>
+    <div class="modal-body" id="tel-body"></div>
+  </div>
+</div>
+
+<!-- Modal publicar -->
+<div class="overlay" id="modal-pub" style="display:none">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Publicar mi vehículo</h2>
+      <button class="close-btn" onclick="closeModal('modal-pub')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Tipo de vehículo</label>
+        <select id="p-tipo"><option>Carro</option><option>Moto</option><option>Camioneta</option><option>Camión</option></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Marca</label><input id="p-marca" placeholder="Toyota, Mazda..."/></div>
+        <div class="form-group"><label>Referencia</label><input id="p-ref" placeholder="Corolla, CB190..."/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Año</label><input id="p-anio" placeholder="2021"/></div>
+        <div class="form-group"><label>Kilometraje</label><input id="p-km" placeholder="38.000 km"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Precio COP</label><input id="p-precio" placeholder="45.000.000"/></div>
+        <div class="form-group"><label>Ciudad</label>
+          <select id="p-ciudad"><option>Bogotá</option><option>Medellín</option><option>Cali</option><option>Barranquilla</option><option>Popayán</option><option>Bucaramanga</option><option>Pereira</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label>Descripción</label><textarea id="p-desc" placeholder="Estado, extras, documentos al día..."></textarea></div>
+
+      <!-- Subida de fotos -->
+      <div class="form-group">
+        <label>Fotos del vehículo (máximo 20)</label>
+        <div class="upload-zone" onclick="document.getElementById('foto-input').click()">
+          <div style="font-size:32px;margin-bottom:8px">📷</div>
+          <div style="font-size:14px;color:#666">Haz clic para agregar fotos</div>
+          <div style="font-size:12px;color:#999;margin-top:4px">JPG, PNG — máximo 20 fotos</div>
+          <input type="file" id="foto-input" accept="image/*" multiple onchange="previewFotos(event)"/>
+        </div>
+        <div class="foto-count" id="foto-count"></div>
+        <div class="preview-grid" id="preview-grid"></div>
+      </div>
+
+      <div class="form-group"><label>Tu nombre</label><input id="p-nombre" placeholder="Carlos Ruiz"/></div>
+      <div class="form-group">
+        <label>Tu teléfono <span style="color:#E53E2B">(oculto — compradores pagan $10.000 para verlo)</span></label>
+        <input id="p-tel" placeholder="300 123 4567"/>
+      </div>
+      <button class="btn-submit" id="btn-publicar" onclick="publicar()">Publicar gratis ahora</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const emojis={Carro:"🚗",Moto:"🏍️",Camioneta:"🚙",Camión:"🚛"};
+let fotosSeleccionadas = [];
+
+function previewFotos(e){
+  const files = Array.from(e.target.files);
+  if(files.length > 20){ alert('Máximo 20 fotos'); return; }
+  fotosSeleccionadas = files;
+  document.getElementById('foto-count').textContent = `${files.length} foto(s) seleccionada(s)`;
+  const grid = document.getElementById('preview-grid');
+  grid.innerHTML = '';
+  files.forEach(f => {
+    const r = new FileReader();
+    r.onload = ev => {
+      const img = document.createElement('img');
+      img.src = ev.target.result;
+      grid.appendChild(img);
+    };
+    r.readAsDataURL(f);
+  });
+}
+
+async function cargarVehiculos(){
+  const res = await fetch('/api/vehiculos');
+  const lista = await res.json();
+  const g = document.getElementById('car-grid');
+  g.innerHTML = lista.map(v => {
+    const imgHTML = v.fotos && v.fotos.length > 0
+      ? `<img src="${v.fotos[0]}" alt="${v.marca}"/>`
+      : `<span>${emojis[v.tipo]||'🚗'}</span>`;
+    return `
+    <div class="card">
+      <div class="card-img">${imgHTML}</div>
+      <div class="card-body">
+        <span class="badge ${v.tipo==='Carro'?'bc':v.tipo==='Moto'?'bm':'bt'}">${v.tipo}</span>
+        <div class="card-title">${v.marca} ${v.referencia||''} ${v.anio}</div>
+        <div class="card-sub">${v.km} · ${v.ciudad}</div>
+        <div class="card-price">${v.precio}</div>
+        <div class="card-footer">
+          <span class="card-city">📍 ${v.ciudad}</span>
+          <button class="btn-tel" onclick="verTelefono(${v.id},'${v.marca} ${v.anio}')">Ver teléfono 🔒</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function verTelefono(id, titulo){
+  document.getElementById('tel-title').textContent = titulo;
+  document.getElementById('tel-body').innerHTML = `
+    <div class="pay-box">
+      <div style="font-size:36px">🔒</div>
+      <div style="font-size:15px;font-weight:600;margin:8px 0 4px">Número oculto</div>
+      <div style="font-size:13px;color:#666;margin-bottom:8px">Solo compradores serios pagan para contactar al vendedor</div>
+      <div class="pay-amount">$10.000 COP</div>
+      <div style="font-size:11px;color:#999;margin-bottom:4px">Pago único · acceso inmediato</div>
+      <button class="btn-pay" onclick="iniciarPago(${id})">Pagar con Mercado Pago</button>
+      <div style="font-size:11px;color:#999;margin-top:8px">🔐 Pago seguro con Mercado Pago</div>
+    </div>`;
+  document.getElementById('modal-tel').style.display = 'flex';
+}
+
+async function iniciarPago(id){
+  document.getElementById('tel-body').innerHTML = '<div style="text-align:center;padding:30px"><div style="font-size:30px">⏳</div><p style="margin-top:12px;color:#666">Conectando con Mercado Pago...</p></div>';
+  try{
+    const res = await fetch('/api/pagar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({vehiculoId:id})});
+    const data = await res.json();
+    if(data.init_point){ window.location.href = data.init_point; }
+    else{ alert('Configura tu token de Mercado Pago en el archivo .env'); }
+  }catch(e){ alert('Error de conexión'); }
+}
+
+async function publicar(){
+  const btn = document.getElementById('btn-publicar');
+  btn.textContent = 'Subiendo fotos...';
+  btn.disabled = true;
+
+  const form = new FormData();
+  form.append('tipo', document.getElementById('p-tipo').value);
+  form.append('marca', document.getElementById('p-marca').value || 'Vehículo');
+  form.append('referencia', document.getElementById('p-ref').value || '');
+  form.append('anio', document.getElementById('p-anio').value || '2024');
+  form.append('precio', document.getElementById('p-precio').value || '0');
+  form.append('ciudad', document.getElementById('p-ciudad').value);
+  form.append('km', document.getElementById('p-km').value || '0 km');
+  form.append('desc', document.getElementById('p-desc').value);
+  form.append('owner', document.getElementById('p-nombre').value || 'Vendedor');
+  form.append('tel', document.getElementById('p-tel').value || '000');
+  fotosSeleccionadas.forEach(f => form.append('fotos', f));
+
+  try{
+    const res = await fetch('/api/vehiculos',{method:'POST',body:form});
+    const data = await res.json();
+    if(data.ok){
+      closeModal('modal-pub');
+      cargarVehiculos();
+      fotosSeleccionadas = [];
+      document.getElementById('preview-grid').innerHTML = '';
+      document.getElementById('foto-count').textContent = '';
+    }
+  }catch(e){ alert('Error publicando'); }
+  btn.textContent = 'Publicar gratis ahora';
+  btn.disabled = false;
+}
+
+function openPublish(){ document.getElementById('modal-pub').style.display='flex'; }
+function closeModal(id){ document.getElementById(id).style.display='none'; }
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.style.display='none'}));
+
+cargarVehiculos();
+</script>
+</body>
+</html>
