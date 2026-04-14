@@ -125,4 +125,4 @@ app.get('/api/telefono/:id', async (req, res) => {
   res.json({ tel: data.telefono, owner: `${data.marca} ${data.modelo}` });
 });
 
-app.listen(3000, () => console.log('AutoClic corriendo en http://localhost:3000'));
+app.listen(process.env.PORT || 3000, () => console.log('AutoClic corriendo'));
