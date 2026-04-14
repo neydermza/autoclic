@@ -1,9 +1,9 @@
 {
-  "nombre": "autoclic",
-  "versión": "1.0.0",
-  "principal": "servidor.js",
-  "guiones": {
-    "comenzar": "servidor node.js"
+  "name": "autoclic",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
   },
   "dependencies": {
     "cloudinary": "^2.9.0",
