@@ -2,7 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
-const { MercadoPagoConfig, Preference, Payment } = require('mercadopago');
+const { MercadoPagoConfig, Preference } = require('mercadopago');
+const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
 const app = express();
@@ -20,19 +21,25 @@ const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN
 });
 
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
+);
+
 const upload = multer({ storage: multer.memoryStorage() });
 
-let vehiculos = [
-  { id: 1, tipo: "Carro", marca: "Toyota", referencia: "Corolla", anio: 2021, precio: "$52.000.000", ciudad: "Bogotá", km: "38.000 km", desc: "Perfecto estado, único dueño.", tel: "310 555 7890", owner: "Carlos R.", fotos: [] },
-  { id: 2, tipo: "Moto", marca: "Honda", referencia: "CB 190R", anio: 2022, precio: "$9.800.000", ciudad: "Medellín", km: "12.000 km", desc: "SOAT y tecno al día.", tel: "315 432 1100", owner: "Daniela M.", fotos: [] },
-  { id: 3, tipo: "Camioneta", marca: "Chevrolet", referencia: "Blazer", anio: 2020, precio: "$85.000.000", ciudad: "Cali", km: "55.000 km", desc: "4x4, turbo, cámara de reversa.", tel: "321 789 4455", owner: "Andrés P.", fotos: [] },
-];
+// GET todos los vehículos (sin teléfono)
+app.get('/api/vehiculos', async (req, res) => {
+  const { data, error } = await supabase
+    .from('vehiculos')
+    .select('id, marca, modelo, anio, precio, kilometraje, descripcion, ciudad, fotos, created_at')
+    .order('created_at', { ascending: false });
 
-app.get('/api/vehiculos', (req, res) => {
-  const lista = vehiculos.map(({ tel, ...v }) => v);
-  res.json(lista);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
 });
 
+// POST crear vehículo
 app.post('/api/vehiculos', upload.array('fotos', 20), async (req, res) => {
   try {
     const fotos = [];
@@ -47,46 +54,53 @@ app.post('/api/vehiculos', upload.array('fotos', 20), async (req, res) => {
         fotos.push(result.secure_url);
       }
     }
-    const v = {
-      id: Date.now(),
-      tipo: req.body.tipo,
+
+    const { data, error } = await supabase.from('vehiculos').insert([{
       marca: req.body.marca,
-      referencia: req.body.referencia || '',
-      anio: req.body.anio,
-      precio: '$' + req.body.precio,
+      modelo: req.body.referencia || req.body.modelo || '',
+      anio: parseInt(req.body.anio),
+      precio: parseInt(req.body.precio),
+      kilometraje: parseInt(req.body.km) || 0,
+      descripcion: req.body.desc || req.body.descripcion || '',
+      telefono: req.body.tel,
       ciudad: req.body.ciudad,
-      km: req.body.km,
-      desc: req.body.desc,
-      owner: req.body.owner,
-      tel: req.body.tel,
       fotos
-    };
-    vehiculos.unshift(v);
-    res.json({ ok: true, id: v.id });
+    }]).select();
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ ok: true, id: data[0].id });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Error subiendo fotos' });
   }
 });
 
+// POST pagar
 app.post('/api/pagar', async (req, res) => {
   const { vehiculoId } = req.body;
-  const vehiculo = vehiculos.find(v => v.id == vehiculoId);
-  if (!vehiculo) return res.status(404).json({ error: 'Vehículo no encontrado' });
+
+  const { data, error } = await supabase
+    .from('vehiculos')
+    .select('*')
+    .eq('id', vehiculoId)
+    .single();
+
+  if (error || !data) return res.status(404).json({ error: 'Vehículo no encontrado' });
+
   try {
     const preference = new Preference(client);
     const result = await preference.create({
       body: {
         items: [{
-          title: `Contacto: ${vehiculo.marca} ${vehiculo.referencia} ${vehiculo.anio}`,
+          title: `Contacto: ${data.marca} ${data.modelo} ${data.anio}`,
           quantity: 1,
           unit_price: 10000,
           currency_id: 'COP'
         }],
         back_urls: {
-          success: `http://localhost:3000?pago=ok&vid=${vehiculoId}`,
-          failure: `http://localhost:3000`,
-          pending: `http://localhost:3000`
+          success: `https://autoclic-production.up.railway.app?pago=ok&vid=${vehiculoId}`,
+          failure: `https://autoclic-production.up.railway.app`,
+          pending: `https://autoclic-production.up.railway.app`
         },
         auto_return: 'approved',
         metadata: { vehiculoId }
@@ -99,10 +113,16 @@ app.post('/api/pagar', async (req, res) => {
   }
 });
 
-app.get('/api/telefono/:id', (req, res) => {
-  const vehiculo = vehiculos.find(v => v.id == req.params.id);
-  if (!vehiculo) return res.status(404).json({ error: 'No encontrado' });
-  res.json({ tel: vehiculo.tel, owner: vehiculo.owner });
+// GET teléfono después de pagar
+app.get('/api/telefono/:id', async (req, res) => {
+  const { data, error } = await supabase
+    .from('vehiculos')
+    .select('telefono, marca, modelo')
+    .eq('id', req.params.id)
+    .single();
+
+  if (error || !data) return res.status(404).json({ error: 'No encontrado' });
+  res.json({ tel: data.telefono, owner: `${data.marca} ${data.modelo}` });
 });
 
 app.listen(3000, () => console.log('AutoClic corriendo en http://localhost:3000'));
